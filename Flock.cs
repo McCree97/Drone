@@ -9,7 +9,7 @@ using TMPro;
 
 public class Flock : MonoBehaviour
 {
-    public TMP_InputField droneInputField; // Reference to the Input Field
+    public TMP_InputField droneInputField; 
     public Button selfDestructButton;
     public Button showLocationsButton;
     public Drone agentPrefab;
@@ -37,21 +37,20 @@ public class Flock : MonoBehaviour
     float squareAvoidanceRadius;
     public float SquareAvoidanceRadius { get { return squareAvoidanceRadius; } }
 
-    // Start is called before the first frame update
-    private float bulletCountUpdateInterval = 5f; // Time interval in seconds
-private float bulletCountTimer = 0f; // Timer to track elapsed time
+    
+    private float bulletCountUpdateInterval = 5f; 
+private float bulletCountTimer = 0f; 
 void Start()
 {
-    // Randomize BulletCount for each agent at the beginning
     foreach (Drone agent in agents)
     {
-        agent.BulletCount = UnityEngine.Random.Range(1, 101); // Randomize BulletCount from the start
-        UpdateDroneColor(agent); // Update color based on the initial BulletCount
+        agent.BulletCount = UnityEngine.Random.Range(1, 101); 
+        UpdateDroneColor(agent); 
     }
 
     if (agentPrefab == null)
     {
-        return; // Exit the Start method if agentPrefab is null
+        return; 
     }
     
 
@@ -69,9 +68,9 @@ void Start()
         );
 
         newAgent.name = "Agent " + i;
-        newAgent.DroneID = "Drone_" + i; // Set the unique ID
+        newAgent.DroneID = "Drone_" + i; 
         newAgent.Initialize(this);
-        newAgent.BulletCount = UnityEngine.Random.Range(0, 100); // Assign a random bullet count to each drone
+        newAgent.BulletCount = UnityEngine.Random.Range(0, 100); 
         agents.Add(newAgent);
 
         if (i < startingCount / 2)
@@ -85,12 +84,12 @@ void Start()
     }
 
     selfDestructButton.onClick.AddListener(OnSelfDestructButtonClick);
-    showLocationsButton.onClick.AddListener(DisplayAllDroneLocations); // Only set up listener here
+    showLocationsButton.onClick.AddListener(DisplayAllDroneLocations); 
 }
 
 private void OnSelfDestructButtonClick()
     {
-        string droneIdToDestroy = droneInputField.text; // Get text from the input field
+        string droneIdToDestroy = droneInputField.text; 
         SelfDestructDrone(droneIdToDestroy);
     }
 
@@ -113,81 +112,64 @@ private DroneCommunication AddToCommunicationList(DroneCommunication head, Drone
     }
 
 
-    void BubbleSort(Drone[] arr, int n) // O(N^2)
+    void BubbleSort(Drone[] arr, int n) 
     {
         int i, j;
         Drone temp;
-        //bool swapped;               // let n =10
-        for (i = 0; i < n - 1; i++)  // i=0..9
+        for (i = 0; i < n - 1; i++)  
         {
-           // swapped = false;
-            for (j = 0; j < n - i - 1; j++)   // i=0: j=0..9
-                                              // i=1; j=0..8
-                                              // i=2; j=0..7
-                                              // i
+            for (j = 0; j < n - i - 1; j++)                               
             {
-                if (arr[j].Temperature > arr[j + 1].Temperature) // check whether to swap
+                if (arr[j].Temperature > arr[j + 1].Temperature) 
                 {
-
-                    // Swap arr[j] and arr[j+1]
                     temp = arr[j];
                     arr[j] = arr[j + 1];
                     arr[j + 1] = temp;
-                    //swapped = true;
                 }
             }
-
-            // If no two elements were
-            // swapped by inner loop, then break
-            //if (swapped == false)
-            //    break;
         }
     }
-
-    // Update is called once per frame
 
 void Update()
 {
 
 {
-        bulletCountTimer += Time.deltaTime; // Increment the timer by the time since last frame
+        bulletCountTimer += Time.deltaTime; 
 
-        // Check if 5 seconds have passed
         if (bulletCountTimer >= bulletCountUpdateInterval)
         {
-            bulletCountTimer = 0f; // Reset the timer
+            bulletCountTimer = 0f; 
 
-            // Randomize BulletCount for each agent every 5 seconds
             foreach (Drone agent in agents)
             {
-                agent.BulletCount = UnityEngine.Random.Range(1, 101); // Re-randomize the BulletCount
-                UpdateDroneColor(agent); // Update color based on the new BulletCount
+                agent.BulletCount = UnityEngine.Random.Range(1, 101); 
+                UpdateDroneColor(agent); 
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Return)) // Press Enter to trigger the self-destruct
+        if (Input.GetKeyDown(KeyCode.Return)) 
         {
-            // Prompt user for drone ID
+            
             string droneIdToDestroy = PromptUserForDroneID();
             SelfDestructDrone(droneIdToDestroy);
         }
 
-        // Movement behavior (unchanged)
+        
         foreach (Drone agent in agents)
         {
-            // Measure partitioning time
+            
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
             List<Transform> context = GetNearbyObjects(agent);
 
             stopwatch.Stop();
-            //UnityEngine.Debug.Log($"Partitioning time for {agent.name}: {stopwatch.Elapsed.TotalMilliseconds:F3} ms");
+            
 
             Vector2 move = behavior.CalculateMove(agent, context, this);
             move *= driveFactor;
 
-            // Limit the speed of the drone
+            
             if (move.sqrMagnitude > squareMaxSpeed)
             {
                 move = move.normalized * maxSpeed;
@@ -198,29 +180,28 @@ void Update()
     
     
 
-    bulletCountTimer += Time.deltaTime; // Increment the timer by the time since last frame
+    bulletCountTimer += Time.deltaTime; 
 
-    // Check if 5 seconds have passed
+    
     if (bulletCountTimer >= bulletCountUpdateInterval)
     {
-        bulletCountTimer = 0f; // Reset the timer
+        bulletCountTimer = 0f; 
 
-        // Randomize BulletCount for each agent every 5 seconds
+        
         foreach (Drone agent in agents)
         {
-            agent.BulletCount = UnityEngine.Random.Range(1, 101); // Re-randomize the BulletCount
-            UpdateDroneColor(agent); // Update color based on the new BulletCount
+            agent.BulletCount = UnityEngine.Random.Range(1, 101); 
+            UpdateDroneColor(agent); 
         }
     }
 
-    // Movement behavior (unchanged)
+    
     foreach (Drone agent in agents)
     {
         List<Transform> context = GetNearbyObjects(agent);
         Vector2 move = behavior.CalculateMove(agent, context, this);
         move *= driveFactor;
 
-        // Limit the speed of the drone
         if (move.sqrMagnitude > squareMaxSpeed)
         {
             move = move.normalized * maxSpeed;
@@ -232,32 +213,31 @@ void Update()
     private string PromptUserForDroneID()
     {
         UnityEngine.Debug.Log("Enter the Drone ID to self-destruct (e.g., Drone_0):");
-        string droneId = ""; // Capture user input (in a real implementation, you'd need to manage this input)
-        return droneId; // Replace with actual input handling
+        string droneId = ""; 
+        return droneId; 
     }
 
-    // Self-destruct logic
     private void SelfDestructDrone(string droneID)
     {
-        Stopwatch stopwatch = new Stopwatch(); // Create a stopwatch to measure time
+        Stopwatch stopwatch = new Stopwatch(); 
         stopwatch.Start(); 
         bool droneFound = false;
           foreach (Drone agent in agents)
     {
         if (agent.DroneID == droneID)
         {
-            agent.gameObject.SetActive(false); // Deactivate the drone
+            agent.gameObject.SetActive(false); 
             UnityEngine.Debug.Log(droneID + " has been self-destructed.");
-            droneFound = true; // Set the flag to true if drone is found
-            break; // Exit the loop once the drone is found and deactivated
+            droneFound = true; 
+            break; 
         }
     }
 
-    stopwatch.Stop(); // Stop timing
+    stopwatch.Stop(); 
 
     if (droneFound)
     {
-        // Display time taken for self-destruction
+       
         UnityEngine.Debug.Log($"Time taken to self-destruct {droneID}: {stopwatch.Elapsed.TotalMilliseconds:F3} ms");
         
     }
@@ -270,11 +250,11 @@ void Update()
        
     }
 
-// Separate method to update the color based on BulletCount
+
 private void UpdateDroneColor(Drone agent)
 {
     Renderer renderer = agent.GetComponent<Renderer>();
-    if (agent.BulletCount < 50) // Assuming 50 is the threshold
+    if (agent.BulletCount < 50) 
     {
         renderer.material.color = Color.red;
     }
@@ -317,14 +297,13 @@ public void SearchDroneInPartition(string droneName, int partitionNumber)
 
   public void DisplayAllDroneLocations()
 {
-    float partition1Time = 0f; // To store elapsed time for Partition 1
-    float partition2Time = 0f; // To store elapsed time for Partition 2
+    float partition1Time = 0f; 
+    float partition2Time = 0f; 
     
-    // Display locations for Partition 1
     if (partition1Head != null)
     {
         Stopwatch partition1Stopwatch = new Stopwatch();
-        partition1Stopwatch.Start(); // Start timing for Partition 1
+        partition1Stopwatch.Start(); 
         DroneCommunication current = partition1Head;
         int position = 0;
 
@@ -335,7 +314,7 @@ public void SearchDroneInPartition(string droneName, int partitionNumber)
             current = current.Next;
             position++;
         }
-        partition1Stopwatch.Stop(); // Stop timing for Partition 1
+        partition1Stopwatch.Stop(); 
         partition1Time = (float)partition1Stopwatch.Elapsed.TotalMilliseconds;
         UnityEngine.Debug.Log($"Time taken to display Partition 1: {partition1Time:F3} ms");
     }
@@ -344,11 +323,11 @@ public void SearchDroneInPartition(string droneName, int partitionNumber)
         UnityEngine.Debug.Log("Partition 1 is empty.");
     }
 
-    // Display locations for Partition 2
+    
     if (partition2Head != null)
     {
         Stopwatch partition2Stopwatch = new Stopwatch();
-        partition2Stopwatch.Start(); // Start timing for Partition 2
+        partition2Stopwatch.Start(); 
         DroneCommunication current = partition2Head;
         int position = 0;
 
@@ -359,7 +338,7 @@ public void SearchDroneInPartition(string droneName, int partitionNumber)
             current = current.Next;
             position++;
         }
-        partition2Stopwatch.Stop(); // Stop timing for Partition 2
+        partition2Stopwatch.Stop(); 
         partition2Time = (float)partition2Stopwatch.Elapsed.TotalMilliseconds;
         UnityEngine.Debug.Log($"Time taken to display Partition 2: {partition2Time:F3} ms");
     }
@@ -368,7 +347,7 @@ public void SearchDroneInPartition(string droneName, int partitionNumber)
         UnityEngine.Debug.Log("Partition 2 is empty.");
     }
 
-    // Display the separate timing results for each partition at the end
+    
     UnityEngine.Debug.Log($"Summary of times taken:");
     UnityEngine.Debug.Log($"Partition 1 time: {partition1Time:F3} ms");
     UnityEngine.Debug.Log($"Partition 2 time: {partition2Time:F3} ms");
