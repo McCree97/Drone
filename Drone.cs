@@ -1,15 +1,21 @@
-﻿using System.Collections;
+﻿﻿﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Collider2D))]
 public class Drone : MonoBehaviour
 {
-    public string DroneID;
-    public int Temperature { set; get; } = 0;
+    public string DroneID { get; set; }  // Unique ID of the drone (used as the key)
+    public string DroneName { get; set; }  // Name of the drone
+    public float Temperature { get; set; }  // Example of a drone attribute
+
+    public string Partition { get; private set; }
+
+    private static int droneCounter = 0;  // Static counter to auto-assign unique drone IDs
     Flock agentFlock;
     public Flock AgentFlock { get { return agentFlock; } }
-    public int BulletCount;
+    public int BulletCount { get; set; }
+    public int BatteryLevel { get; set; } // New attribute
     Collider2D agentCollider;
     public Collider2D AgentCollider { get { return agentCollider; } }
 
@@ -29,12 +35,22 @@ public class Drone : MonoBehaviour
     public void Initialize(Flock flock)
     {
         agentFlock = flock;
-         CommunicationLink = null;
+        CommunicationLink = null;
+        BatteryLevel = UnityEngine.Random.Range(0, 100);
     }
 
     public void Move(Vector2 velocity)
     {
         transform.up = velocity;
         transform.position += (Vector3)velocity * Time.deltaTime;
+    }
+
+    public Drone(string partition)
+    {
+        // Automatically generate a unique droneID
+        DroneID = "Drone_" + droneCounter.ToString();
+        droneCounter++;  // Increment for the next drone
+
+        Partition = partition;
     }
 }
