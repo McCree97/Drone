@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,6 +18,8 @@ public class Flock : MonoBehaviour
 
     private DroneCommunication partition1Head;
     private DroneCommunication partition2Head;
+    private Queue<string> logMessages = new Queue<string>(); // Queue to store log messages
+    
 
     [Range(10, 5000)]
     public int startingCount = 250;
@@ -224,6 +226,7 @@ void Update()
         bool droneFound = false;
           foreach (Drone agent in agents)
     {
+        
         if (agent.DroneID == droneID)
         {
             agent.gameObject.SetActive(false); 
