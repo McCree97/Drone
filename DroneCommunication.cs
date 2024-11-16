@@ -32,4 +32,3 @@ public class DroneCommunication
         UnityEngine.Debug.Log($"Drone {droneName} not found in the linked list.");
     }
 }
-
