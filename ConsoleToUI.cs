@@ -2,36 +2,53 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ConsoleToUI : MonoBehaviour
 {
-    public TMP_Text consoleOutput; // Reference to the TextMeshPro text field on the UI
-    
-    private Queue<string> logMessages = new Queue<string>(); // Queue to store log messages
-    private int maxMessages = 20; // Limit of messages to display at once
+    public TMP_Text consoleOutput; 
+    public Button clearButton; 
+
+    private Queue<string> logMessages = new Queue<string>(); 
+    private int maxMessages = 20; 
 
     private void OnEnable()
     {
-        Application.logMessageReceived += HandleLog; // Subscribe to the log message event
+        Application.logMessageReceived += HandleLog; 
     }
 
     private void OnDisable()
     {
-        Application.logMessageReceived -= HandleLog; // Unsubscribe when not in use
+        Application.logMessageReceived -= HandleLog; 
+    }
+
+    private void Start()
+    {
+        if (clearButton != null)
+        {
+            clearButton.onClick.AddListener(ClearConsole); 
+        }
     }
 
     private void HandleLog(string logString, string stackTrace, LogType type)
     {
-        // Add log message to the queue
+        
         logMessages.Enqueue(logString);
 
-        // If the queue exceeds the max, remove the oldest message
+        
         if (logMessages.Count > maxMessages)
         {
             logMessages.Dequeue();
         }
 
-        // Update the console output display
+        
         consoleOutput.text = string.Join("\n", logMessages.ToArray());
+    }
+
+    
+    public void ClearConsole()
+    {
+        logMessages.Clear(); 
+        consoleOutput.text = "";
     }
 }
