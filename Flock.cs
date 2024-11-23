@@ -9,6 +9,8 @@ using TMPro;
 
 public class Flock : MonoBehaviour
 {
+     public TMP_Text statusText;
+    public Button destroyAllButton;
     public TMP_InputField droneInputField; 
     public Button selfDestructButton;
     public Button showLocationsButton;
@@ -19,6 +21,13 @@ public class Flock : MonoBehaviour
     private DroneCommunication partition1Head;
     private DroneCommunication partition2Head;
     private Queue<string> logMessages = new Queue<string>(); // Queue to store log messages
+    
+    public TMP_InputField startDroneInputField;
+    public TMP_InputField endDroneInputField;
+    public Button showPathButton;
+    public LineRenderer lineRenderer;
+
+    
     
 
     [Range(10, 5000)]
@@ -38,10 +47,9 @@ public class Flock : MonoBehaviour
     float squareNeighborRadius;
     float squareAvoidanceRadius;
     public float SquareAvoidanceRadius { get { return squareAvoidanceRadius; } }
-
-    
     private float bulletCountUpdateInterval = 5f; 
-private float bulletCountTimer = 0f; 
+    private float bulletCountTimer = 0f; 
+
 void Start()
 {
     foreach (Drone agent in agents)
@@ -54,6 +62,11 @@ void Start()
     {
         return; 
     }
+    
+     if (statusText != null)
+        {
+            statusText.text = "";
+        }
     
 
     squareMaxSpeed = maxSpeed * maxSpeed;
@@ -84,9 +97,14 @@ void Start()
             partition2Head = AddToCommunicationList(partition2Head, newAgent);
         }
     }
-
+if (destroyAllButton != null)
+    {
+        destroyAllButton.onClick.AddListener(DestroyAllDrones);
+    }
     selfDestructButton.onClick.AddListener(OnSelfDestructButtonClick);
     showLocationsButton.onClick.AddListener(DisplayAllDroneLocations); 
+    showPathButton.onClick.AddListener(OnShowPathButtonClick);
+   
 }
 
 private void OnSelfDestructButtonClick()
@@ -212,14 +230,14 @@ void Update()
     }
 }
 
-    private string PromptUserForDroneID()
+private string PromptUserForDroneID()
     {
         UnityEngine.Debug.Log("Enter the Drone ID to self-destruct (e.g., Drone_0):");
         string droneId = ""; 
         return droneId; 
     }
 
-    private void SelfDestructDrone(string droneID)
+private void SelfDestructDrone(string droneID)
     {
         Stopwatch stopwatch = new Stopwatch(); 
         stopwatch.Start(); 
@@ -281,6 +299,44 @@ List<Transform> GetNearbyObjects(Drone agent)
         }
         return context;
     }
+   private void DestroyAllDrones()
+{
+    StartCoroutine(DestroyAllDronesCoroutine());
+}
+
+private IEnumerator DestroyAllDronesCoroutine()
+{
+    foreach (Drone agent in agents)
+    {
+        if (agent != null && agent.gameObject.activeSelf)
+        {
+            Renderer renderer = agent.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                renderer.material.color = Color.red; // Change color to red
+            }
+        }
+    }
+
+    yield return new WaitForSeconds(1f); // Wait for 1 second
+
+    foreach (Drone agent in agents)
+    {
+        if (agent != null && agent.gameObject.activeSelf)
+        {
+            agent.gameObject.SetActive(false); // Deactivate the drone
+        }
+    }
+     UnityEngine.Debug.Log("All drones has been Deactivated");
+
+        // Update the status text
+        if (statusText != null)
+        {
+            statusText.text = "All Drones Deactivated";
+        }
+    
+    
+}
 
 public void SearchDroneInPartition(string droneName, int partitionNumber)
     {
@@ -356,5 +412,169 @@ public void SearchDroneInPartition(string droneName, int partitionNumber)
     UnityEngine.Debug.Log($"Partition 2 time: {partition2Time:F3} ms");
 }
 
+ private void OnShowPathButtonClick()
+    {
+        string startDroneId = startDroneInputField.text;
+        string endDroneId = endDroneInputField.text;
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
 
+        List<Drone> path = FindShortestPathBFS(startDroneId, endDroneId);
+
+        // Stop the stopwatch
+        stopwatch.Stop();
+
+        // Display the elapsed time
+        UnityEngine.Debug.Log("Time taken to find the shortest path: " + stopwatch.ElapsedMilliseconds+ "ms");
+       
+        if (path != null && path.Count > 0)
+        {
+            // Log the shortest path to the console
+            UnityEngine.Debug.Log("Shortest Path found:");
+            foreach (Drone drone in path)
+            {
+                UnityEngine.Debug.Log(drone.DroneID);
+            }
+        }
+        else
+        {
+            UnityEngine.Debug.Log("No path found between the drones.");
+        }
+    }
+
+    // BFS Algorithm to find the shortest path between StartDrone and EndDrone
+    private List<Drone> FindShortestPathBFS(string startDroneId, string endDroneId)
+    {
+        Drone startDrone = FindDroneById(startDroneId);
+        Drone endDrone = FindDroneById(endDroneId);
+
+        if (startDrone == null || endDrone == null)
+        {
+            UnityEngine.Debug.Log("One or both drones not found.");
+            return null;
+        }
+
+        Queue<Drone> queue = new Queue<Drone>();
+        Dictionary<Drone, Drone> previousDrone = new Dictionary<Drone, Drone>(); // Track the path
+
+        queue.Enqueue(startDrone);
+        previousDrone[startDrone] = null;
+
+        while (queue.Count > 0)
+        {
+            Drone currentDrone = queue.Dequeue();
+
+            if (currentDrone == endDrone)
+            {
+                // Reconstruct the path
+                List<Drone> path = new List<Drone>();
+                for (Drone drone = endDrone; drone != null; drone = previousDrone[drone])
+                {
+                    path.Add(drone);
+                }
+                path.Reverse(); // Reverse the path to show it from start to end
+                return path;
+            }
+
+            foreach (Drone neighbor in GetNeighbors(currentDrone))
+            {
+                if (!previousDrone.ContainsKey(neighbor)) // Not visited yet
+                {
+                    queue.Enqueue(neighbor);
+                    previousDrone[neighbor] = currentDrone;
+                }
+            }
+        }
+
+        return null; // No path found
+    }
+
+
+
+  private Drone FindDroneById(string droneId)
+    {
+        foreach (Drone agent in agents)
+        {
+            if (agent.DroneID == droneId)
+            {
+                return agent;
+            }
+        }
+        return null;
+    }
+
+
+
+        private bool DFS(Drone currentDrone, Drone endDrone, HashSet<Drone> visited, List<Drone> path)
+    {
+        if (visited.Contains(currentDrone))
+        {
+            return false;
+        }
+
+        visited.Add(currentDrone);
+        path.Add(currentDrone);
+
+        if (currentDrone == endDrone)
+        {
+            return true;
+        }
+
+        // Explore neighbors (other drones) to continue DFS
+        foreach (Drone neighbor in GetNeighbors(currentDrone))
+        {
+            if (DFS(neighbor, endDrone, visited, path))
+            {
+                return true;
+            }
+        }
+
+        // If no path found, backtrack by removing the current drone from the path
+        path.RemoveAt(path.Count - 1);
+        return false;
+    }
+
+       private List<Drone> GetNeighbors(Drone drone)
+    {
+        List<Drone> neighbors = new List<Drone>();
+
+        foreach (Drone otherDrone in agents)
+        {
+            if (otherDrone != drone && Vector2.Distance(drone.transform.position, otherDrone.transform.position) <= neighborRadius)
+            {
+                neighbors.Add(otherDrone);
+            }
+        }
+
+        return neighbors;
+    }
+
+ private void DisplayPath(List<Drone> path)
+{
+    UnityEngine.Debug.Log("Path found:");
+
+   
+
+    for (int i = 0; i < path.Count; i++)
+    {
+        lineRenderer.SetPosition(i, path[i].transform.position);
+    }
+
+    // Log drone information
+    foreach (Drone drone in path)
+    {
+        UnityEngine.Debug.Log($"Drone {drone.DroneID} at position {drone.transform.position}");
+    }
+}
+
+
+    private List<Drone> GetNearbyDrones(Drone agent)
+    {
+        // Replace this logic with your actual neighbor connection logic
+        List<Drone> nearbyDrones = new List<Drone>();
+        // Add connected drones to nearbyDrones based on your structure
+        return nearbyDrones;
+    }
+
+    
 }
