@@ -3,12 +3,14 @@ public class DroneBTCommunication
     public Drone Drone { get; set; }  
     public DroneBTCommunication Left { get; set; }  
     public DroneBTCommunication Right { get; set; } 
+    public DroneBTCommunication Next { get; set; }
 
     public DroneBTCommunication(Drone drone)
     {
         Drone = drone;
         Left = null;
         Right = null;
+        Next = null;
     }
 
     
@@ -74,4 +76,3 @@ public class DroneBTCommunication
             Right.InOrderTraversal();  
     }
 }
-
